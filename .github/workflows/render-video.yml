@@ -30,8 +30,8 @@ jobs:
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install chromium
-      - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Check FFmpeg
+        run: ffmpeg -version | head -n 1
       - name: Render saved numerical trajectory
         run: node scripts/render.mjs
       - name: Encode MP4 and GIF
