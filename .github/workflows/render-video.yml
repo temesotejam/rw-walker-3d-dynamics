@@ -1,8 +1,11 @@
 name: Render rear-hip motion
 on:
-  push:
-    branches: [video/rear-hip-4mm]
   workflow_dispatch:
+    inputs:
+      viewer_url:
+        description: "Temporary HTTPS URL of the self-contained viewer HTML for this run"
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
@@ -20,6 +23,13 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Fetch transient input
+        env:
+          WALKER_VIEWER_URL: ${{ inputs.viewer_url }}
+        run: |
+          mkdir -p viewer
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 --max-time 120 "$WALKER_VIEWER_URL" -o viewer/rear-hip-4mm.html
+          test -s viewer/rear-hip-4mm.html
       - name: Render saved numerical trajectory
         run: node scripts/render.mjs
       - name: Encode MP4 and GIF
