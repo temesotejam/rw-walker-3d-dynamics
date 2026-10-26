@@ -30,8 +30,11 @@ jobs:
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install chromium
-      - name: Check FFmpeg
-        run: ffmpeg -version | head -n 1
+      - name: Install portable FFmpeg
+        run: |
+          python -m pip install --quiet imageio-ffmpeg
+          ln -s "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" /tmp/ffmpeg
+          echo /tmp >> "$GITHUB_PATH"
       - name: Render saved numerical trajectory
         run: node scripts/render.mjs
       - name: Encode MP4 and GIF
@@ -40,7 +43,7 @@ jobs:
           ffmpeg -hide_banner -loglevel error -y -framerate 8 -i frames/frame_%03d.png -vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' -c:v libx264 -crf 22 -pix_fmt yuv420p -movflags +faststart video/rear-hip-4mm.mp4
           ffmpeg -hide_banner -loglevel error -y -framerate 8 -i frames/frame_%03d.png -vf 'fps=8,scale=640:-1:flags=lanczos,palettegen' video/palette.png
           ffmpeg -hide_banner -loglevel error -y -framerate 8 -i frames/frame_%03d.png -i video/palette.png -filter_complex 'fps=8,scale=640:-1:flags=lanczos[x];[x][1:v]paletteuse' video/rear-hip-4mm.gif
-          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 video/rear-hip-4mm.mp4
+          test -s video/rear-hip-4mm.mp4
       - uses: actions/upload-artifact@v4
         with:
           name: rear-hip-4mm-motion
