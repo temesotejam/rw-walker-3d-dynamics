@@ -1,7 +1,5 @@
 name: Render rear-hip motion
 on:
-  push:
-    branches: [video/rear-hip-4mm]
   workflow_dispatch:
     inputs:
       viewer_url:
@@ -21,7 +19,7 @@ jobs:
           node-version: '22'
       - name: Fetch transient input
         env:
-          WALKER_VIEWER_URL: "https://sdmntprkoreacentral.oaiusercontent.com/files/00000000-d2c0-8206-9697-9e0fe2dc7366/raw?se=2026-10-26T11%3A50%3A01Z&sp=r&sv=2026-02-06&sr=b&scid=68fff983-c9c1-45a1-b255-d976daa31971&skoid=3e273c3d-5ea1-4088-9e18-79685531b184&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-25T22%3A59%3A07Z&ske=2026-10-26T22%3A59%3A07Z&sks=b&skv=2026-02-06&sig=X3decTnya1/Yw4HInujApf1AWJeMq4NmDWL994sekJQ%3D"
+          WALKER_VIEWER_URL: ${{ inputs.viewer_url }}
         run: |
           mkdir -p viewer
           curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 --max-time 120 "$WALKER_VIEWER_URL" -o viewer/rear-hip-4mm.html
@@ -30,11 +28,8 @@ jobs:
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install chromium
-      - name: Install portable FFmpeg
-        run: |
-          python -m pip install --quiet imageio-ffmpeg
-          ln -s "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" /tmp/ffmpeg
-          echo /tmp >> "$GITHUB_PATH"
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Render saved numerical trajectory
         run: node scripts/render.mjs
       - name: Encode MP4 and GIF
@@ -43,7 +38,7 @@ jobs:
           ffmpeg -hide_banner -loglevel error -y -framerate 8 -i frames/frame_%03d.png -vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' -c:v libx264 -crf 22 -pix_fmt yuv420p -movflags +faststart video/rear-hip-4mm.mp4
           ffmpeg -hide_banner -loglevel error -y -framerate 8 -i frames/frame_%03d.png -vf 'fps=8,scale=640:-1:flags=lanczos,palettegen' video/palette.png
           ffmpeg -hide_banner -loglevel error -y -framerate 8 -i frames/frame_%03d.png -i video/palette.png -filter_complex 'fps=8,scale=640:-1:flags=lanczos[x];[x][1:v]paletteuse' video/rear-hip-4mm.gif
-          test -s video/rear-hip-4mm.mp4
+          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 video/rear-hip-4mm.mp4
       - uses: actions/upload-artifact@v4
         with:
           name: rear-hip-4mm-motion
