@@ -1,7 +1,5 @@
 name: Render rear-hip motion
 on:
-  push:
-    branches: [video/rear-hip-4mm]
   workflow_dispatch:
     inputs:
       viewer_url:
@@ -21,7 +19,7 @@ jobs:
           node-version: '22'
       - name: Fetch transient input
         env:
-          WALKER_VIEWER_URL: 'https://sdmntprkoreacentral.oaiusercontent.com/files/00000000-df40-8206-8861-d758aec4de6a/raw?se=2026-10-26T09%3A04%3A08Z&sp=r&sv=2026-02-06&sr=b&scid=e182895c-1b6e-49f8-aca8-da70e8bdf1ae&skoid=3e273c3d-5ea1-4088-9e18-79685531b184&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-26T01%3A19%3A18Z&ske=2026-10-27T01%3A19%3A18Z&sks=b&skv=2026-02-06&sig=zBt1Gf8G9P3enDBz/2K3fzF0fhxFXN/34LCq3wCjZE0%3D'
+          WALKER_VIEWER_URL: ${{ inputs.viewer_url }}
         run: |
           mkdir -p viewer
           curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 --max-time 120 "$WALKER_VIEWER_URL" -o viewer/rear-hip-4mm.html
