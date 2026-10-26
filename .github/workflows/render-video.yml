@@ -18,6 +18,8 @@ jobs:
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Render saved numerical trajectory
         run: node scripts/render.mjs
       - name: Encode MP4 and GIF
@@ -32,4 +34,3 @@ jobs:
           name: rear-hip-4mm-motion
           path: video/rear-hip-4mm.*
           retention-days: 30
-
